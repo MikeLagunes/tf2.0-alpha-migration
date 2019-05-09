@@ -11,10 +11,10 @@ AUTOTUNE = tf.data.experimental.AUTOTUNE
 
 #import IPython.display as display
 
-all_image_paths = glob.glob("/media/mikelf/rob/datasets/core50_v3/train/*")
+#all_image_paths = glob.glob("/media/mikelf/rob/datasets/core50_v3/train/*")
 
 data_root = pathlib.Path("/media/mikelf/rob/datasets/core50_v3/train/")
-#print(data_root)
+print(data_root)
 
 #for item in data_root.iterdir():
 #  print(item)
@@ -24,10 +24,12 @@ data_root = pathlib.Path("/media/mikelf/rob/datasets/core50_v3/train/")
 all_image_paths = list(data_root.glob('*/*'))
 all_image_paths = [str(path) for path in all_image_paths]
 
-all_image_paths = all_image_paths#[0:10000]
+#all_image_paths = all_image_paths#[0:10000]
 #random.shuffle(all_image_paths)
 
 image_count = len(all_image_paths)
+
+print(image_count)
 
 
 def get_labels(all_img_paths):
@@ -79,7 +81,11 @@ def load_and_preprocess_from_path_label(path, label):
 
 #path_ds = tf.data.Dataset.from_tensor_slices(all_image_paths)
 
+print(all_image_paths[0:3])
+
 all_image_labels = get_labels(all_image_paths)
+
+print(all_image_paths[0:3])
 
 ds = tf.data.Dataset.from_tensor_slices((all_image_paths, all_image_labels))
 image_label_ds = ds.map(load_and_preprocess_from_path_label)
@@ -111,15 +117,28 @@ BATCH_SIZE = 32
 # Setting a shuffle buffer size as large as the dataset ensures that the data is
 # completely shuffled.
 
-image_label_ds = image_label_ds.cache(filename='./cache.tf-data')
+#image_label_ds = image_label_ds.cache(filename='./cache.tf-data')
 
 
-ds = image_label_ds.shuffle(buffer_size=image_count)
-ds = ds.repeat()
-ds = ds.batch(BATCH_SIZE)
+#ds = image_label_ds.shuffle(buffer_size=image_count)
+#ds = ds.repeat()
+#ds = ds.batch(BATCH_SIZE)
 # `prefetch` lets the dataset fetch batches, in the background while the model is training.
-ds = ds.prefetch(buffer_size=AUTOTUNE)
+#ds = ds.prefetch(buffer_size=AUTOTUNE)
 
+
+#V2
+# ds = image_label_ds.cache(filename='./cache.tf-data')
+# ds = ds.apply(
+#   tf.data.experimental.shuffle_and_repeat(buffer_size=image_count))#image_count
+# ds = ds.batch(BATCH_SIZE).prefetch(1)
+
+
+#ds = image_label_ds.cache(filename='./cache.tf-data')
+#ds = ds.shuffle(buffer_size=1)
+#ds = ds.repeat()
+#ds = ds.batch(BATCH_SIZE)
+ds = image_label_ds.batch(BATCH_SIZE).prefetch(buffer_size=AUTOTUNE)
 
 
 mobile_net = tf.keras.applications.MobileNetV2(input_shape=(192, 192, 3), include_top=False)
